@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Catálogo')}"></head>
+<body>
+<div class="app-layout">
+  <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Catálogo — Categorías y Etiquetas</h1>
+        <p class="page-subtitle">Gestiona las categorías y tags disponibles para las tareas</p>
+      </div>
+      <span class="role-badge admin" sec:authorize="hasRole('ADMIN')" style="font-size:11px;padding:4px 12px">Admin</span>
+      <span class="role-badge gestor" sec:authorize="hasRole('GESTOR')" style="font-size:11px;padding:4px 12px">Gestor</span>
+    </div>
+
+    <div class="page-body">
+      <div th:replace="~{fragments/layout :: alerts}"></div>
+
+      <div class="cat-tag-grid">
+
+        <!--CATEGORÍAS -->
+        <div>
+          <div class="card mb-16">
+            <div class="card-header">
+              <span>Categorías</span>
+              <span class="badge badge-category" th:text="${#lists.size(categories)} + ' total'">0</span>
+            </div>
+            <!-- Formulario nueva categoría -->
+            <div class="card-body" style="padding:14px 16px;border-bottom:1px solid var(--border)">
+              <form th:action="@{/admin/catalogo/categorias/nueva}" method="post" class="d-flex gap-8">
+                <input type="text" name="name" class="form-control" placeholder="Nombre de la categoría..."
+                       required maxlength="50" style="flex:1"/>
+                <button type="submit" class="btn btn-primary btn-sm">+ Añadir</button>
+              </form>
+            </div>
+            <!-- Lista de categorías -->
+            <div th:if="${#lists.isEmpty(categories)}" class="empty-state" style="padding:28px">
+              <p class="text-muted fs-12">No hay categorías. Añade la primera.</p>
+            </div>
+            <ul class="item-list" th:unless="${#lists.isEmpty(categories)}">
+              <li th:each="cat : ${categories}">
+                <div class="d-flex gap-8" style="align-items:center">
+                  <span class="badge badge-category" th:text="${cat.name}">Cat</span>
+                  <span class="text-muted fs-12" th:if="${cat.tasks != null}"
+                        th:text="${#lists.size(cat.tasks)} + ' tareas'"></span>
+                </div>
+                <div class="d-flex gap-8">
+                  <!-- Editar inline -->
+                  <form th:action="@{/admin/catalogo/categorias/{id}/editar(id=${cat.id})}" method="post"
+                        class="d-flex gap-8">
+                    <input type="text" name="name" class="form-control btn-xs"
+                           th:value="${cat.name}" style="width:130px"/>
+                    <button type="submit" class="btn btn-ghost btn-xs">✔ Guardar</button>
+                  </form>
+                  <form th:action="@{/admin/catalogo/categorias/{id}/eliminar(id=${cat.id})}" method="post"
+                        data-confirm="¿Eliminar esta categoría? Las tareas asociadas quedarán sin categoría.">
+                    <button type="submit" class="btn btn-danger btn-xs">🗑</button>
+                  </form>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── ETIQUETAS (TAGS) ── -->
+        <div>
+          <div class="card mb-16">
+            <div class="card-header">
+              <span>Etiquetas (Tags)</span>
+              <span class="badge badge-tag" th:text="${#lists.size(tags)} + ' total'">0</span>
+            </div>
+            <!-- Formulario nuevo tag -->
+            <div class="card-body" style="padding:14px 16px;border-bottom:1px solid var(--border)">
+              <form th:action="@{/admin/catalogo/tags/nuevo}" method="post" class="d-flex gap-8">
+                <input type="text" name="name" class="form-control" placeholder="Nombre de la etiqueta..."
+                       required maxlength="40" style="flex:1"/>
+                <button type="submit" class="btn btn-primary btn-sm">+ Añadir</button>
+              </form>
+            </div>
+            <!-- Lista de tags -->
+            <div th:if="${#lists.isEmpty(tags)}" class="empty-state" style="padding:28px">
+              <p class="text-muted fs-12">No hay etiquetas. Añade la primera.</p>
+            </div>
+            <ul class="item-list" th:unless="${#lists.isEmpty(tags)}">
+              <li th:each="tag : ${tags}">
+                <div class="d-flex gap-8" style="align-items:center">
+                  <span class="badge badge-tag" th:text="'# ' + ${tag.name}">Tag</span>
+                </div>
+                <div class="d-flex gap-8">
+                  <!-- Editar inline -->
+                  <form th:action="@{/admin/catalogo/tags/{id}/editar(id=${tag.id})}" method="post"
+                        class="d-flex gap-8">
+                    <input type="text" name="name" class="form-control btn-xs"
+                           th:value="${tag.name}" style="width:130px"/>
+                    <button type="submit" class="btn btn-ghost btn-xs">✔ Guardar</button>
+                  </form>
+                  <form th:action="@{/admin/catalogo/tags/{id}/eliminar(id=${tag.id})}" method="post"
+                        data-confirm="¿Eliminar este tag? Se desvinculará de todas las tareas.">
+                    <button type="submit" class="btn btn-danger btn-xs">🗑</button>
+                  </form>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PERMISOS -->
+      <!-- Info de permisos -->
+      <div class="card">
+        <div class="card-header">Permisos de acceso</div>
+        <div class="card-body responsive-grid-3">
+          <div>
+            <span class="role-badge admin" style="margin-bottom:8px;display:inline-block">Admin</span>
+            <p class="text-secondary fs-12">Puede crear, editar y eliminar categorías y tags. Además gestiona usuarios y sus roles.</p>
+          </div>
+          <div>
+            <span class="role-badge gestor" style="margin-bottom:8px;display:inline-block">Gestor</span>
+            <p class="text-secondary fs-12">Puede crear, editar y eliminar categorías y etiquetas para organizar las tareas del equipo.</p>
+          </div>
+          <div>
+            <span class="role-badge user" style="margin-bottom:8px;display:inline-block">User</span>
+            <p class="text-secondary fs-12">Puede usar las categorías y tags existentes al crear tareas, pero no puede crear nuevas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

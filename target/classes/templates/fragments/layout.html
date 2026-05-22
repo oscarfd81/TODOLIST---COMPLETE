@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- FRAGMENTO: MENÚ LATERAL DE NAVEGACIÓN -->
+<th:block th:fragment="sidebar">
+  
+  <!-- CABECERA PARA DISPOSITIVOS MÓVILES -->
+  <div class="mobile-header">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <span class="logo-text">
+      <i class="fa-solid fa-square-poll-horizontal me-2"></i>
+      TaskFlow
+    </span>
+    <div style="width: 36px;"></div> 
+  </div>
+
+  <!-- CAPA OSCURA PARA CUANDO EL MENÚ MÓVIL ESTÁ ABIERTO -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- NAVEGACIÓN LATERAL PRINCIPAL -->
+  <nav class="sidebar" id="sidebar">
+    <button class="mobile-close-btn" id="mobileCloseBtn" type="button">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-text">
+          <i class="fa-solid fa-square-poll-horizontal me-2 text-primary"></i>
+          TaskFlow
+        </span>
+      </div>
+    </div>
+
+    <!-- PERFIL Y ROL DEL USUARIO LOGUEADO -->
+    <div class="sidebar-user">
+      <div class="user-avatar-wrapper">
+        <div class="user-avatar">
+          <i class="fa-solid fa-circle-user fa-2xl text-secondary"></i>
+        </div>
+      </div>
+      <div class="user-name" sec:authentication="name">usuario</div>
+      <div class="user-role">
+        <span class="role-badge admin"   sec:authorize="hasRole('ADMIN')">Admin</span>
+        <span class="role-badge gestor"  sec:authorize="hasRole('GESTOR')">Gestor</span>
+        <span class="role-badge user"    sec:authorize="hasRole('USER')">User</span>
+      </div>
+    </div>
+
+    <!-- ENLACES DE NAVEGACIÓN PRINCIPALES -->
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Tareas</div>
+      <a th:href="@{/tasks/board}"     class="nav-link" th:classappend="${currentPage == 'board'}     ? 'active' : ''">
+        <i class="fa-solid fa-columns me-2"></i> Tablero Kanban
+      </a>
+      <a th:href="@{/tasks}"           class="nav-link" th:classappend="${currentPage == 'list'}      ? 'active' : ''">
+        <i class="fa-solid fa-list me-2"></i> Lista de Tareas
+      </a>
+      <a th:href="@{/tasks/new}"       class="nav-link" th:classappend="${currentPage == 'new'}       ? 'active' : ''">
+        <i class="fa-solid fa-plus-circle me-2"></i> Nueva Tarea
+      </a>
+      <a th:href="@{/tasks/dashboard}" class="nav-link" th:classappend="${currentPage == 'dashboard'} ? 'active' : ''">
+        <i class="fa-solid fa-chart-line me-2"></i> Dashboard
+      </a>
+
+      <div class="nav-section-label" style="margin-top:6px">Cuenta</div>
+      <a th:href="@{/profile}" class="nav-link" th:classappend="${currentPage == 'profile'} ? 'active' : ''">
+        <i class="fa-solid fa-user me-2"></i> Mi Perfil
+      </a>
+
+      <!-- SECCIONES CON PRIVILEGIOS ELEVADOS -->
+      <div sec:authorize="hasRole('ADMIN')">
+        <div class="nav-section-label" style="margin-top:6px">Administración</div>
+        <a th:href="@{/admin/users}" class="nav-link" th:classappend="${currentPage == 'admin'} ? 'active' : ''">
+          <i class="fa-solid fa-users-cog me-2"></i> Gestión Usuarios
+        </a>
+        <a th:href="@{/admin/catalogo}" class="nav-link" th:classappend="${currentPage == 'catalogo'} ? 'active' : ''">
+          <i class="fa-solid fa-book-open me-2"></i> Catálogo (Cat/Tags)
+        </a>
+      </div>
+
+      <div sec:authorize="hasRole('GESTOR')">
+        <div class="nav-section-label" style="margin-top:6px">Gestión</div>
+        <a th:href="@{/admin/catalogo}" class="nav-link" th:classappend="${currentPage == 'catalogo'} ? 'active' : ''">
+          <i class="fa-solid fa-book-open me-2"></i> Catálogo (Cat/Tags)
+        </a>
+      </div>
+    </div>
+
+    <!-- BOTONES DE PIE DE PÁGINA: TEMA Y CERRAR SESIÓN -->
+    <div class="sidebar-footer">
+      <form th:action="@{/auth/logout}" method="post" style="margin:0">
+        <button class="btn btn-ghost btn-sm w-100 mt-2 d-flex align-items-center justify-content-center" type="submit">
+          <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar sesión
+        </button>
+      </form>
+    </div>
+  </nav>
+</th:block>
+
+<!-- FRAGMENTO: CONFIGURACIÓN DE LOS RECURSOS DE LA PÁGINA -->
+<head th:fragment="head(title)">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${title} + ' — TaskFlow'">TaskFlow</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/app.css}"/>
+  
+  <!-- CONFIGURACIÓN DE SEGURIDAD CSRF -->
+  <th:block th:if="${_csrf != null}">
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  </th:block>
+  
+</head>
+
+<!-- FRAGMENTO: MENSAJES DE ALERTA TEMPORALES -->
+<div th:fragment="alerts">
+  <div th:if="${success}" class="alert alert-success d-flex align-items-center" data-autodismiss>
+    <i class="fa-solid fa-circle-check me-2"></i>
+    <span th:text="${success}"></span>
+  </div>
+  <div th:if="${error}" class="alert alert-danger d-flex align-items-center" data-autodismiss>
+    <i class="fa-solid fa-circle-exclamation me-2"></i>
+    <span th:text="${error}"></span>
+  </div>
+</div>
+
+<!-- FRAGMENTO: TARJETA DE PREVISUALIZACIÓN DE TAREA -->
+<div th:fragment="task-card(task)">
+  <a th:href="@{/tasks/{id}(id=${task.id})}" class="task-card">
+    <div class="task-card-title d-flex align-items-start justify-content-between">
+      <span th:text="${task.title}">Título</span>
+      <i th:if="${task.important}" class="fa-solid fa-star text-warning fs-12 ms-2" title="Tarea importante"></i>
+    </div>
+    <div th:if="${task.description}" class="task-card-desc" th:text="${task.description}"></div>
+    
+    <div class="task-card-meta d-flex flex-wrap gap-2 align-items-center mt-2">
+      <!-- PRIORIDAD -->
+      <span class="badge"
+            th:classappend="'badge-prio-' + ${#strings.toLowerCase(task.priority)}"
+            th:text="${task.priority}">MEDIA</span>
+      
+      <!-- CATEGORÍA -->
+      <span th:if="${task.category}" class="badge badge-category"
+            th:text="${task.category.name}">Cat</span>
+      
+      <!-- FECHA LÍMITE CON ESTILO CONDICIONAL -->
+      <span th:if="${task.deadline != null}" class="deadline d-inline-flex align-items-center"
+            th:classappend="${task.deadline.isBefore(T(java.time.LocalDateTime).now())} ? 'overdue' :
+                            (${task.deadline.isBefore(T(java.time.LocalDateTime).now().plusDays(2))} ? 'urgent' : 'ok')">
+        <i class="fa-regular fa-calendar-check me-1 fs-10"></i>
+        <span th:text="${#temporals.format(task.deadline, 'dd/MM HH:mm')}"></span>
+      </span>
+    </div>
+    
+    <!-- ETIQUETAS (TAGS) ASOCIADAS -->
+    <div th:if="${task.tags != null and !#lists.isEmpty(task.tags)}" class="task-card-tags">
+      <span th:each="tag : ${task.tags}" class="badge badge-tag" th:text="'# ' + ${tag.name}">tag</span>
+    </div>
+  </a>
+</div>
+
+</html>

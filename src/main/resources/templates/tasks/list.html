@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Lista de Tareas')}"></head>
+<body>
+
+<div class="app-layout">
+  <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+
+  <main class="main-content">
+    
+    <!-- ENCABEZADO: TÍTULO Y ACCIÓN PRINCIPAL -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Lista de Tareas</h1>
+        <p class="page-subtitle" th:text="${#lists.size(tasks)} + ' tareas encontradas'">0 tareas</p>
+      </div>
+      <a th:href="@{/tasks/new}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus-circle me-2"></i> Nueva tarea
+      </a>
+    </div>
+
+    <div class="page-body">
+      <!-- ALERTAS Y NOTIFICACIONES -->
+      <div th:replace="~{fragments/layout :: alerts}"></div>
+
+      <!-- SECCIÓN: FILTROS DE BÚSQUEDA -->
+      <div class="card mb-16">
+        <div class="card-body" style="padding:13px 16px">
+          <form th:action="@{/tasks}" method="get" class="search-bar">
+            <input type="text" name="title" class="form-control" placeholder="Buscar por título..."
+                   th:value="${filterTitle}" style="max-width:220px"/>
+            <select name="status" class="form-control" style="max-width:150px">
+              <option value="">Todos los estados</option>
+              <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                      th:selected="${filterStatus == s}">Estado</option>
+            </select>
+            <select name="priority" class="form-control" style="max-width:150px">
+              <option value="">Todas las prioridades</option>
+              <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}"
+                      th:selected="${filterPriority == p}">Prioridad</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            <a th:href="@{/tasks}" class="btn btn-ghost btn-sm">Limpiar</a>
+          </form>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: TABLA DE TAREAS -->
+      <div class="card">
+        
+        <!-- ESTADO VACÍO -->
+        <div th:if="${#lists.isEmpty(tasks)}" class="empty-state">
+          <i class="fa-solid fa-magnifying-glass fa-3x mb-3 text-muted"></i>
+          <h3>No se encontraron tareas</h3>
+          <p>Prueba a cambiar los filtros o <a th:href="@{/tasks/new}">crea una nueva tarea</a></p>
+        </div>
+
+        <!-- CONTENIDO DE LA TABLA -->
+        <div class="table-responsive" th:if="${!#lists.isEmpty(tasks)}">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Título / Tags</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Categoría</th>
+                <th>Deadline</th>
+                <th style="text-align:center">Imp.</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="task : ${tasks}">
+                <td>
+                  <a th:href="@{/tasks/{id}(id=${task.id})}" th:text="${task.title}" style="font-weight:600;color:var(--text-primary)">Título</a>
+                  <!-- ETIQUETAS ASOCIADAS -->
+                  <div th:if="${task.tags != null and !#lists.isEmpty(task.tags)}"
+                       style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">
+                    <span th:each="tag : ${task.tags}" class="badge badge-tag"
+                          th:text="'# ' + ${tag.name}">tag</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge"
+                        th:classappend="'badge-status-' + ${#strings.toLowerCase(task.status)}"
+                        th:text="${task.status}">Estado</span>
+                </td>
+                <td>
+                  <span class="badge"
+                        th:classappend="'badge-prio-' + ${#strings.toLowerCase(task.priority)}"
+                        th:text="${task.priority}">Prio</span>
+                </td>
+                <td>
+                  <span th:if="${task.category}" class="badge badge-category"
+                        th:text="${task.category.name}">—</span>
+                  <span th:unless="${task.category}" class="text-muted">—</span>
+                </td>
+                <td>
+                  <span th:if="${task.deadline != null}" class="deadline"
+                        th:classappend="${task.deadline.isBefore(T(java.time.LocalDateTime).now())} ? 'overdue' :
+                                        (${task.deadline.isBefore(T(java.time.LocalDateTime).now().plusDays(2))} ? 'urgent' : 'ok')"
+                        th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy HH:mm')}">-</span>
+                  <span th:unless="${task.deadline != null}" class="text-muted fs-12">Sin fecha</span>
+                </td>
+                <td style="text-align:center">
+                  <span th:if="${task.important}" style="color:#b45309;font-size:15px" title="Importante"><i class="fa-solid fa-star text-warning"></i></span>
+                  <span th:unless="${task.important}" class="text-muted">—</span>
+                </td>
+                <td>
+                  <!-- ACCIONES POR TAREA -->
+                  <div class="d-flex gap-8">
+                    <select class="form-control status-select btn-xs"
+                            th:data-task-id="${task.id}"
+                            style="padding:3px 6px;font-size:11px;width:auto">
+                      <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                              th:selected="${task.status == s}">Estado</option>
+                    </select>
+                    <a th:href="@{/tasks/{id}/edit(id=${task.id})}" class="btn btn-ghost btn-xs" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
+                    <form th:action="@{/tasks/{id}/delete(id=${task.id})}" method="post"
+                          data-confirm="¿Eliminar esta tarea?">
+                      <button type="submit" class="btn btn-danger btn-xs" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SCRIPT DE FUNCIONALIDADES -->
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

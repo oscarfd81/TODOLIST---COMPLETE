@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Tablero')}"></head>
+<body>
+
+<div class="app-layout">
+  <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+
+  <main class="main-content">
+    
+    <!-- ENCABEZADO DE PÁGINA -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Tablero Kanban</h1>
+        <p class="page-subtitle">Arrastra o cambia el estado de tus tareas</p>
+      </div>
+      <div class="d-flex gap-8">
+        <a th:href="@{/tasks}" class="btn btn-ghost btn-sm">
+          <i class="fa-solid fa-list me-2"></i> Vista lista
+        </a>
+        <a th:href="@{/tasks/new}" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-plus-circle me-2"></i> Nueva tarea
+        </a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      
+      <!-- ALERTAS Y MENSAJES DE ESTADO -->
+      <div th:replace="~{fragments/layout :: alerts}"></div>
+
+      <!-- ESTADÍSTICAS RÁPIDAS DEL TABLERO -->
+      <div class="stats-grid mb-24" th:if="${stats}">
+        <div class="stat-card stat-total">
+          <div class="stat-number" th:text="${stats.total}">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card stat-pending">
+          <div class="stat-number" th:text="${stats.pendiente}">0</div>
+          <div class="stat-label">Pendiente</div>
+        </div>
+        <div class="stat-card stat-process">
+          <div class="stat-number" th:text="${stats.enProceso}">0</div>
+          <div class="stat-label">En proceso</div>
+        </div>
+        <div class="stat-card stat-done">
+          <div class="stat-number" th:text="${stats.hecho}">0</div>
+          <div class="stat-label">Hecho</div>
+        </div>
+        <div class="stat-card stat-missed">
+          <div class="stat-number" th:text="${stats.noHecho}">0</div>
+          <div class="stat-label">No hecho</div>
+        </div>
+        <div class="stat-card stat-important">
+          <div class="stat-number" th:text="${stats.importantes}">0</div>
+          <div class="stat-label">Importantes</div>
+        </div>
+      </div>
+
+      <!-- CONTENEDOR DEL TABLERO KANBAN -->
+      <div class="board-columns">
+
+        <!-- COLUMNA: PENDIENTE -->
+        <div class="board-col col-pendiente">
+          <div class="board-col-header">
+            <span><i class="fa-solid fa-list-check me-2"></i>Pendiente</span>
+            <span class="count" th:text="${#lists.size(tasksPendiente)}">0</span>
+          </div>
+          <div class="board-col-body">
+            <div th:if="${#lists.isEmpty(tasksPendiente)}" class="empty-state" style="padding:20px">
+              <p class="text-muted fs-12">Sin tareas pendientes</p>
+            </div>
+            <th:block th:each="task : ${tasksPendiente}">
+              <div th:replace="~{fragments/layout :: task-card(${task})}"></div>
+            </th:block>
+          </div>
+        </div>
+
+        <!-- COLUMNA: EN PROCESO -->
+        <div class="board-col col-proceso">
+          <div class="board-col-header">
+            <span><i class="fa-solid fa-spinner fa-spin me-2"></i>En proceso</span>
+            <span class="count" th:text="${#lists.size(tasksEnProceso)}">0</span>
+          </div>
+          <div class="board-col-body">
+            <div th:if="${#lists.isEmpty(tasksEnProceso)}" class="empty-state" style="padding:20px">
+              <p class="text-muted fs-12">Nada en proceso</p>
+            </div>
+            <th:block th:each="task : ${tasksEnProceso}">
+              <div th:replace="~{fragments/layout :: task-card(${task})}"></div>
+            </th:block>
+          </div>
+        </div>
+
+        <!-- COLUMNA: HECHO -->
+        <div class="board-col col-hecho">
+          <div class="board-col-header">
+            <span><i class="fa-solid fa-circle-check me-2"></i>Hecho</span>
+            <span class="count" th:text="${#lists.size(tasksHecho)}">0</span>
+          </div>
+          <div class="board-col-body">
+            <div th:if="${#lists.isEmpty(tasksHecho)}" class="empty-state" style="padding:20px">
+              <p class="text-muted fs-12">Nada completado aún</p>
+            </div>
+            <th:block th:each="task : ${tasksHecho}">
+              <div th:replace="~{fragments/layout :: task-card(${task})}"></div>
+            </th:block>
+          </div>
+        </div>
+
+        <!-- COLUMNA: NO HECHO -->
+        <div class="board-col col-nohecho">
+          <div class="board-col-header">
+            <span><i class="fa-solid fa-circle-xmark me-2"></i>No hecho</span>
+            <span class="count" th:text="${#lists.size(tasksNoHecho)}">0</span>
+          </div>
+          <div class="board-col-body">
+            <div th:if="${#lists.isEmpty(tasksNoHecho)}" class="empty-state" style="padding:20px">
+              <p class="text-muted fs-12">Sin tareas fallidas</p>
+            </div>
+            <th:block th:each="task : ${tasksNoHecho}">
+              <div th:replace="~{fragments/layout :: task-card(${task})}"></div>
+            </th:block>
+          </div>
+        </div>
+
+      </div> <!-- FIN DE COLUMNAS DEL TABLERO -->
+    </div>
+  </main>
+</div>
+
+<!-- SCRIPT DE INTERACCIÓN -->
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

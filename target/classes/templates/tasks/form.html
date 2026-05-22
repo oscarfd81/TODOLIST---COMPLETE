@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editMode} ? 'Editar tarea' : 'Nueva tarea')}"></head>
+<body>
+
+<div class="app-layout">
+  <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+
+  <main class="main-content">
+    
+    <!-- ENCABEZADO DE PÁGINA -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" th:text="${editMode} ? 'Editar tarea' : 'Nueva tarea'">Tarea</h1>
+        <p class="page-subtitle" th:text="${editMode} ? 'Modifica los campos que necesites' : 'Rellena el formulario para crear una tarea'"></p>
+      </div>
+      <a th:href="@{/tasks/board}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Volver al tablero</a>
+    </div>
+
+    <div class="page-body" style="max-width:760px">
+      <div class="card">
+        <div class="card-body">
+          
+          <!-- FORMULARIO DE TAREA -->
+          <form th:action="${editMode} ? @{/tasks/{id}/edit(id=${taskId})} : @{/tasks/new}"
+                th:object="${form}" method="post" novalidate>
+
+            <!-- CAMPO: TÍTULO -->
+            <div class="form-group">
+              <label class="form-label" for="title">Título *</label>
+              <input id="title" type="text" class="form-control" th:field="*{title}"
+                     placeholder="Nombre claro y conciso de la tarea"/>
+              <div class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+            </div>
+
+            <!-- CAMPO: DESCRIPCIÓN -->
+            <div class="form-group">
+              <label class="form-label" for="description">Descripción</label>
+              <textarea id="description" class="form-control" th:field="*{description}"
+                        placeholder="Detalles adicionales sobre la tarea..." rows="4"></textarea>
+            </div>
+
+            <!-- FILA: ESTADO Y PRIORIDAD -->
+            <div class="responsive-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="status">Estado *</label>
+                <select id="status" class="form-control" th:field="*{status}">
+                  <option value="">Selecciona un estado</option>
+                  <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}">Estado</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="priority">Prioridad *</label>
+                <select id="priority" class="form-control" th:field="*{priority}">
+                  <option value="">Selecciona prioridad</option>
+                  <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}">Prioridad</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('priority')}" th:errors="*{priority}"></div>
+              </div>
+            </div>
+
+            <!-- FILA: FECHA LÍMITE Y CATEGORÍA -->
+            <div class="responsive-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="deadline">Fecha límite</label>
+                <input id="deadline" type="datetime-local" class="form-control" th:field="*{deadline}"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="categoryId">Categoría *</label>
+                <select id="categoryId" class="form-control" th:field="*{categoryId}">
+                  <option value="">Selecciona categoría</option>
+                  <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Cat</option>
+                </select>
+                <div class="form-error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN: ETIQUETAS -->
+            <div class="form-group">
+              <label class="form-label">Etiquetas</label>
+              <div class="tags-grid">
+                <label th:each="tag : ${tags}" class="tag-check">
+                  <input type="checkbox" name="tagIds" th:value="${tag.id}"
+                         th:checked="${form.tagIds != null and form.tagIds.contains(tag.id)}"/>
+                  <span th:text="${tag.name}">Tag</span>
+                </label>
+                <span th:if="${#lists.isEmpty(tags)}" class="text-muted fs-12">No hay etiquetas disponibles</span>
+              </div>
+            </div>
+
+            <!-- CAMPO: IMPORTANCIA -->
+            <div class="form-group">
+              <label class="form-check" style="cursor:pointer">
+                <input type="checkbox" th:field="*{important}"/>
+                <span style="font-size:13px;font-weight:500"><i class="fa-solid fa-star text-warning me-1"></i> Marcar como importante</span>
+              </label>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="d-flex gap-8" style="margin-top:8px;border-top:1px solid var(--border);padding-top:16px">
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-circle-check"></i>
+                <span th:text="${editMode} ? 'Guardar cambios' : 'Crear tarea'">Guardar</span>
+              </button>
+              <a th:href="@{/tasks/board}" class="btn btn-ghost">Cancelar</a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SCRIPT DE INTERACCIÓN -->
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

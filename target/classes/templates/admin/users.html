@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Gestión de Usuarios')}"></head>
+<body>
+
+<!-- CONTENEDOR PRINCIPAL DEL LAYOUT -->
+<div class="app-layout">
+  <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+
+  <main class="main-content">
+    
+    <!-- ENCABEZADO DE PÁGINA -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">GESTIÓN DE USUARIOS</h1>
+        <p class="page-subtitle" th:text="${#lists.size(users)} + ' USUARIOS REGISTRADOS'">0 usuarios</p>
+      </div>
+      <span class="role-badge admin">SOLO ADMIN</span>
+    </div>
+
+    <!-- CUERPO DE LA PÁGINA -->
+    <div class="page-body">
+      
+      <!-- NOTIFICACIONES Y ALERTAS -->
+      <div th:replace="~{fragments/layout :: alerts}"></div>
+
+      <!-- TARJETA CON LA TABLA DE USUARIOS -->
+      <div class="card mb-16">
+        
+        <!-- ESTADO VACÍO SI NO HAY USUARIOS -->
+        <div th:if="${#lists.isEmpty(users)}" class="empty-state">
+          <h3>NO HAY USUARIOS REGISTRADOS</h3>
+        </div>
+
+        <!-- TABLA DE USUARIOS SI EXISTEN -->
+        <div class="table-responsive" th:if="${!#lists.isEmpty(users)}">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>USUARIO</th>
+                <th>EMAIL</th>
+                <th>ROL</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ITERACIÓN SOBRE LA LISTA DE USUARIOS -->
+              <tr th:each="u : ${users}">
+                <td th:text="${u.id}" class="text-muted fs-12">—</td>
+                <td class="fw-600" th:text="${u.username}">—</td>
+                <td class="text-secondary fs-13" th:text="${u.email}">—</td>
+                <td>
+                  <!-- ETIQUETAS DE ROL -->
+                  <span class="role-badge admin" th:if="${u.admin}">ADMIN</span>
+                  <span class="role-badge gestor" th:if="${u.gestor and !u.admin}">GESTOR</span>
+                  <span class="role-badge user" th:if="${!u.admin and !u.gestor}">USER</span>
+                </td>
+                <td>
+                  <!-- ACCIONES (PROMOVER, DEGRADAR O ELIMINAR) -->
+                  <div class="d-flex gap-8">
+                    <form th:if="${!u.admin and !u.gestor}" th:action="@{/admin/users/{id}/promote(id=${u.id})}" method="post">
+                      <button type="submit" class="btn btn-warning btn-xs">⬆ GESTOR</button>
+                    </form>
+                    <form th:if="${u.gestor}" th:action="@{/admin/users/{id}/demote(id=${u.id})}" method="post">
+                      <button type="submit" class="btn btn-ghost btn-xs">⬇ USER</button>
+                    </form>
+                    <form th:if="${!u.admin}"
+                          th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="post"
+                          data-confirm="¿ELIMINAR AL USUARIO Y TODAS SUS TAREAS?">
+                      <button type="submit" class="btn btn-danger btn-xs">🗑 ELIMINAR</button>
+                    </form>
+                    <span th:if="${u.admin}" class="text-muted fs-12">—</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LEYENDA EXPLICATIVA DE LOS ROLES -->
+      <div class="card">
+        <div class="card-header">DESCRIPCIÓN DE ROLES</div>
+        <div class="card-body responsive-grid-3">
+          <div>
+            <span class="role-badge admin ">ADMIN</span>
+            <p class="text-secondary fs-12">Acceso total. Gestiona usuarios, roles, categorías, tags y todas las tareas del sistema.</p>
+          </div>
+          <div>
+            <span class="role-badge gestor ">GESTOR</span>
+            <p class="text-secondary fs-12">Permisos ampliados. Puede crear y gestionar categorías y etiquetas para organizar el equipo.</p>
+          </div>
+          <div>
+            <span class="role-badge user">USER</span>
+            <p class="text-secondary fs-12">Usuario estándar. Crea, edita y elimina sus propias tareas usando las categorías y tags disponibles.</p>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </main>
+</div>
+
+
+<!-- SCRIPTS NECESARIOS PARA EL FUNCIONAMIENTO -->
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
